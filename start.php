@@ -11,16 +11,19 @@ define('DS', DIRECTORY_SEPARATOR);
 
 $dir = dirname(__FILE__);
 
+$title = 'Error';
+$content = '<p>No such step.</p>';
+
 // Needed to increase the default access rate limit
 // Scopes: repo(repo:status,public_repo),read:packages
 define('GITHUB_API_KEY', is_file($f = $dir . DS . 'key') ? file_get_contents($f) : null);
 
+define('MIN_APACHE_VERSION', '2.4.0');
 define('MIN_PHP_VERSION', '7.1.0');
 
 define('THE_MECHA_VERSION', '2.3.0');
 define('THE_USER_VERSION', '1.11.4');
 define('THE_PANEL_VERSION', '2.3.1');
-define('THE_PHP_VERSION', PHP_MAJOR_VERSION . '.' . PHP_MINOR_VERSION . '.' . PHP_RELEASE_VERSION);
 
 function fetch($url, $lot = null, $type = 'GET') {
     $headers = array('X-Requested-With' => 'X-Requested-With: CURL');
@@ -88,6 +91,12 @@ if ('POST' === $_SERVER['REQUEST_METHOD']) {
         exit;
     }
 
+    if (4 === $step) {
+        unlink(__FILE__);
+        header('Location: index.php');
+        exit;
+    }
+
     // Else...
 
     $step = (int) (isset($_POST['step']) ? $_POST['step'] : 0);
@@ -137,31 +146,49 @@ if ('POST' === $_SERVER['REQUEST_METHOD']) {
 }
 
 if (0 === $step) {
-    if (version_compare(THE_PHP_VERSION, MIN_PHP_VERSION, '<')) {
-        $title = 'Please Check the Requirements';
-        $alert .= '<p class="error">Mecha requires at least PHP version <code>' . MIN_PHP_VERSION . '</code>. Your current PHP version is <code>' . THE_PHP_VERSION . '</code>.</p>';
-    } else {
-        $alert .= '<p class="success">Current PHP version is <code>' . THE_PHP_VERSION . '</code>.</p>';
-    }
     $title = 'Add Your GitHub Personal Access Token';
-    $content = '<p>Make sure you have an internet connection. This token is needed to increase the rate limit of the GitHub API.</p><p>Go to <a href="https://github.com/settings/tokens" target="_blank">https://github.com/settings/tokens</a> to get your own personal access token. Make sure to check <strong>repo:status</strong>, <strong>public_repo</strong> and <strong>read:packages</strong> options only, just to be safe. Then generate the token.</p><p>Do not share your token with anyone!</p><p class="p"><label for="f:0">Token</label><br><span><input id="f:0" name="key" placeholder="' . md5($dir) . '" type="text" value="' . GITHUB_API_KEY . '"></span></p><p class="p"><label></label><span><button type="submit">Save</button> <button type="submit">I Don&rsquo;t Have a GitHub Account</button></span></p>';
+    $content = '<p>Make sure you have an internet connection. This token is needed to increase the rate limit of the GitHub API.</p><p>Go to <a href="https://github.com/settings/tokens" target="_blank">https://github.com/settings/tokens</a> to get your own personal access token. Make sure to check <strong>repo:status</strong>, <strong>public_repo</strong> and <strong>read:packages</strong> options only, just to be safe. Then generate the token.</p><p>Do not share your token with anyone!</p><p><input name="key" placeholder="' . md5($dir) . '" type="text" value="' . GITHUB_API_KEY . '"></p><p><button type="submit">Save</button> <button type="submit">I Don&rsquo;t Have a GitHub Account</button></p>';
+    $v = PHP_MAJOR_VERSION . '.' . PHP_MINOR_VERSION . '.' . PHP_RELEASE_VERSION;
+    if (version_compare($v, MIN_PHP_VERSION, '<')) {
+        $alert .= '<p class="error">Mecha requires at least PHP version ' . MIN_PHP_VERSION . '. Your current PHP version is ' . $v . '.</p>';
+    } else {
+        $alert .= '<p class="success">Your current PHP version is ' . $v . '.</p>';
+    }
+    if (!function_exists('apache_get_version')) {
+        $alert .= '<p class="error">Your PHP application doesn&rsquo;t seem to be running on Apache web server.</p>';
+    } else {
+        if (preg_match('/\d+(\.\d+)*/', apache_get_version(), $m)) {
+            if (version_compare($v = $m[0], MIN_APACHE_VERSION, '<')) {
+                $alert .= '<p class="error">Mecha requires at least Apache version ' . MIN_APACHE_VERSION . '. Your current Apache version is ' . $v . '.</p>';
+            } else {
+                $alert .= '<p class="success">Your current Apache version is ' . $v . '.</p>';
+                if (!in_array('mod_rewrite', apache_get_modules())) {
+                    $alert .= '<p class="error">Apache module <code>mod_rewrite</code> is disabled or is not yet available.</p>';
+                } else {
+                    $alert .= '<p class="success">Apache module <code>mod_rewrite</code> is enabled.</p>';
+                }
+            }
+        }
+    }
+    if (false !== strpos($alert, ' class="error"')) {
+        $title = 'Please Check the Requirements!';
+        $content = '<p>You can install this application after fixing all the errors.</p>';
+    }
 } else if (1 === $step) {
     if (!GITHUB_API_KEY) {
         $alert .= '<p class="info">Personal access token not specified. Your installation process may stop midway if you have reached the maximum access limit of the GitHub API.</p>';
     }
     $title = 'Let&rsquo;s Start the Installation Process!';
-    $content = '<p>Everything looks good. You are currently in the <code>' . $root . '</code> folder. Please note that your application will be installed in the <code>' . $root . '</code> folder. Make sure that there are no files in it to ensure that no files will be replaced by the files from this application when they have the same name or directory structure as this application.</p><p>To begin the installation, please click the button below:</p><p><button onclick="this.disabled=true;this.innerHTML=&quot;Installing&hellip;&quot;;" type="submit" value="mecha-cms/mecha">Install</button><input name="d" type="hidden" value="mecha-cms/mecha"><input name="tag" type="hidden" value="v' . THE_MECHA_VERSION . '"></p>';
+    $content = '<p>Everything looks good. You are currently in the <code>' . $root . '</code> folder. Please note that your application will be installed in the <code>' . $root . '</code> folder. Make sure that there are no files in it to ensure that no files will be replaced by the files from this application when they have the same name or directory structure as this application.</p><p>To begin the installation, please click the button below!</p><p><button type="submit">Install</button><input name="d" type="hidden" value="mecha-cms/mecha"><input name="tag" type="hidden" value="v' . THE_MECHA_VERSION . '"></p>';
 } else if (2 === $step) {
     $title = 'Adding the Control Panel Feature';
     $content = '<p>I consider users who decide to use this tool as users who are unable to install the external parts of Mecha manually. This inability is a sign that you will most likely need a control panel feature, even though this feature is actually optional which you can remove at any time.</p><p>Please follow these steps to install the feature!</p><h2>Step 1: Install the User Extension</h2><p>This extension is needed to activate the generic user&rsquo;s log-in and log-out feature.</p><p><button type="submit">Install</button><input name="d" type="hidden" value="mecha-cms/x.user|lot/x"><input name="tag" type="hidden" value="v' . THE_USER_VERSION . '"></p>';
 } else if (3 === $step) {
     $title = 'Adding the Control Panel Feature';
     $content = '<p>I consider users who decide to use this tool as users who are unable to install the external parts of Mecha manually. This inability is a sign that you will most likely need a control panel feature, even though this feature is actually optional which you can remove at any time.</p><p>Please follow these steps to install the feature!</p><h2>Step 2: Install the Panel Extension</h2><p>After the user extension has been successfully installed, you can now install the control panel extension.</p><p><button type="submit">Install</button><input name="d" type="hidden" value="mecha-cms/x.panel|lot/x"><input name="tag" type="hidden" value="v' . THE_PANEL_VERSION . '"></p>';
-}
-
-// TODO
-if (is_file($dir . DS . 'index.php')) {
-    //$content = '<p>Installed.</p>';
+} else if (4 === $step) {
+    $title = 'Last Step&hellip;';
+    $content = '<p><strong>Congratulations!</strong></p><p>Your site has been successfully installed and published to the world-wide-web. After clicking the button below, you will be directed to the first time user registration page. Clicking the button below will also delete the installer file, so your site will be safe.</p><p><button type="submit">Finish</button></p><p>After your user account is created, you can see the front page of your site through <a href="//' . rtrim($_SERVER['HTTP_HOST'] . strtr($root, array("\\" => '/', '.' => "")), '/') . '" target="_blank">this link</a>.</p>';
 }
 
 ?>
@@ -183,11 +210,15 @@ body, html {
 }
 html {
   background: #fff;
-  font: normal normal 16px/1.4 sans-serif;
+  font: normal normal 16px/1.2 sans-serif;
   color: #000;
+  border-top: 4px solid;
 }
 h1, h2, h3, h4, h5, h6 {
   font-weight: normal;
+}
+h1 {
+  margin-top: 0;
 }
 code {
   font: inherit;
@@ -195,8 +226,9 @@ code {
   font-size: 90%;
 }
 form {
-  max-width: 40rem;
+  max-width: 50rem;
   margin: 0 auto;
+  padding: 5%;
 }
 button::-moz-focus-inner {
   margin: 0;
@@ -235,28 +267,27 @@ button {
 label {
   cursor: pointer;
 }
-.p {
-  display: flex;
+.alert {
+  margin-bottom: 5%;
 }
-.p label {
-  text-align: right;
-  width: 6em;
-  padding: .25em 1em 0 0;
+.alert p {
+  margin: 0;
+  padding: .5em 1em;
 }
-.p label + br {
-  display: none;
-}
-.p label + br + span {
-  flex: 1;
+.alert p + p {
+  margin-top: .5em;
 }
 .error {
-  color: #f00;
+  background: #f00;
+  color: #fff;
 }
 .info {
-  color: #00f;
+  background: #00f;
+  color: #fff;
 }
 .success {
-  color: #0b0;
+  background: #0b0;
+  color: #fff;
 }
 
     </style>
@@ -264,11 +295,23 @@ label {
   <body>
 
 <form action="" method="post">
-  <?= $alert ? '<div class="alert">' . $alert . '</div>' : ""; ?>
-  <h1><?= $title; ?></h1>
-  <?= $content; ?>
-  <input name="step" type="hidden" value="<?= isset($_GET['step']) ? $_GET['step'] : ""; ?>">
+  <?php echo $alert ? '<div class="alert">' . $alert . '</div>' : ""; ?>
+  <h1><?php echo $title; ?></h1>
+  <?php echo $content; ?>
+  <input name="step" type="hidden" value="<?php echo isset($_GET['step']) ? $_GET['step'] : ""; ?>">
 </form>
+
+<script>
+document.querySelectorAll('[type=submit]').forEach(function(button) {
+    !button.disabled && button.addEventListener('click', function() {
+        if (button.disabled) {
+            return;
+        }
+        this.disabled = true;
+        this.style.cursor = 'wait';
+    });
+});
+</script>
 
   </body>
 </html>
