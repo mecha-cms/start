@@ -61,7 +61,7 @@ function fetch($url, $lot = null, $type = 'GET') {
         }
         $out = curl_exec($curl);
         if (false === $out) {
-            $_SESSION['alert'] = '<p class="error">' . curl_error($curl) . ' (' . $url . ')</p>';
+            $_SESSION['alert_0'] = '<p class="error">' . curl_error($curl) . ' (' . $url . ')</p>';
         }
         curl_close($curl);
     } else {
@@ -76,7 +76,7 @@ function fetch($url, $lot = null, $type = 'GET') {
     return false !== $out ? $out : null;
 }
 
-$alert = isset($_SESSION['alert']) ? $_SESSION['alert'] : "";
+$alert = isset($_SESSION['alert_0']) ? $_SESSION['alert_0'] : "";
 
 $root = strtr(__DIR__, array($_SERVER['DOCUMENT_ROOT'] => '.'));
 
@@ -92,8 +92,12 @@ if ('POST' === $_SERVER['REQUEST_METHOD']) {
     }
 
     if (4 === $step) {
+        if (!is_dir($d = __DIR__ . DS . 'lot' . DS . 'user')) {
+            mkdir($d, 0775, true);
+        }
         unlink(__FILE__);
-        header('Location: index.php');
+        unlink($dir . DS . 'key');
+        header('Location: user');
         exit;
     }
 
@@ -133,10 +137,10 @@ if ('POST' === $_SERVER['REQUEST_METHOD']) {
                 file_put_contents($f, base64_decode($blob['content']));
             }
         }
-        $_SESSION['alert'] = '<p class="success">Successfully installed <code>' . $repo . '@' . $tag . '</code></p>';
+        $_SESSION['alert_0'] = '<p class="success">Successfully installed <code>' . $repo . '@' . $tag . '</code></p>';
     }
 
-    if (isset($_SESSION['alert']) && false !== strpos($_SESSION['alert'], ' class="error"')) {
+    if (isset($_SESSION['alert_0']) && false !== strpos($_SESSION['alert_0'], ' class="error"')) {
         --$step;
     }
 
@@ -187,7 +191,7 @@ if (0 === $step) {
     $title = 'Adding the Control Panel Feature';
     $content = '<p>I consider users who decide to use this tool as users who are unable to install the external parts of Mecha manually. This inability is a sign that you will most likely need a control panel feature, even though this feature is actually optional which you can remove at any time.</p><p>Please follow these steps to install the feature!</p><h2>Step 2: Install the Panel Extension</h2><p>After the user extension has been successfully installed, you can now install the control panel extension.</p><p><button type="submit">Install</button><input name="d" type="hidden" value="mecha-cms/x.panel|lot/x"><input name="tag" type="hidden" value="v' . THE_PANEL_VERSION . '"></p>';
 } else if (4 === $step) {
-    $title = 'Last Step&hellip;';
+    $title = 'The Last Step&hellip;';
     $content = '<p><strong>Congratulations!</strong></p><p>Your site has been successfully installed and published to the world-wide-web. After clicking the button below, you will be directed to the first time user registration page. Clicking the button below will also delete the installer file, so your site will be safe.</p><p><button type="submit">Finish</button></p><p>After your user account is created, you can see the front page of your site through <a href="//' . rtrim($_SERVER['HTTP_HOST'] . strtr($root, array("\\" => '/', '.' => "")), '/') . '" target="_blank">this link</a>.</p>';
 }
 
@@ -244,7 +248,7 @@ textarea {
   font: inherit;
   color: inherit;
   border: 1px solid;
-  padding: .25em .5em;
+  padding: .5em .75em;
   width: 100%;
   text-align: left;
   box-shadow: inset 0 1px 1px rgba(0, 0, 0, .25);
@@ -254,9 +258,9 @@ button {
   text-align: center;
   background: #00a;
   color: #fff;
+  padding-right: .85em;
+  padding-left: .85em;
   border: 0;
-  padding-right: .75em;
-  padding-left: .75em;
   box-shadow: 0 1px 1px rgba(0, 0, 0, .25);
   cursor: pointer;
 }
@@ -317,4 +321,4 @@ document.querySelectorAll('[type=submit]').forEach(function(button) {
 </html>
 <?php
 
-unset($_SESSION['alert']);
+unset($_SESSION['alert_0']);
