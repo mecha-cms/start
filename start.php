@@ -21,12 +21,12 @@ define('GITHUB_API_KEY', is_file($f = $dir . DS . 'key') ? file_get_contents($f)
 define('MIN_APACHE_VERSION', '2.4.0');
 define('MIN_PHP_VERSION', '7.1.0');
 
-define('THE_MECHA_VERSION', '2.3.0');
+define('THE_MECHA_VERSION', '2.3.1');
 define('THE_USER_VERSION', '1.11.4');
-define('THE_PANEL_VERSION', '2.3.1');
+define('THE_PANEL_VERSION', '2.3.2');
 
 function fetch($url, $lot = null, $type = 'GET') {
-    $headers = array('X-Requested-With' => 'X-Requested-With: CURL');
+    $headers = array('x-requested-with' => 'x-requested-with: CURL');
     $chops = explode('?', $url, 2);
     $type = strtoupper($type);
     // `fetch('/', array('X-Foo' => 'Bar'))`
@@ -35,13 +35,13 @@ function fetch($url, $lot = null, $type = 'GET') {
             $headers[$k] = $k . ': ' . $v;
         }
     } else if (is_string($lot)) {
-        $headers['User-Agent'] = 'User-Agent: ' . $lot;
+        $headers['user-agent'] = 'user-agent: ' . $lot;
     }
-    if (!isset($headers['User-Agent'])) {
+    if (!isset($headers['user-agent'])) {
         // <https://tools.ietf.org/html/rfc7231#section-5.5.3>
         $port = (int) $_SERVER['SERVER_PORT'];
         $v = 'Mecha/' . THE_MECHA_VERSION . ' (+http' . (!empty($_SERVER['HTTPS']) && 'off' !== $_SERVER['HTTPS'] || 443 === $port ? 's' : "") . '://' . (isset($_SERVER['HTTP_HOST']) ? $_SERVER['HTTP_HOST'] : (isset($_SERVER['SERVER_NAME']) ? $_SERVER['SERVER_NAME'] : "")) . ')';
-        $headers['User-Agent'] = 'User-Agent: ' . $v;
+        $headers['user-agent'] = 'user-agent: ' . $v;
     }
     $target = 'GET' === $type ? $url : $chops[0];
     if (extension_loaded('curl')) {
@@ -67,7 +67,7 @@ function fetch($url, $lot = null, $type = 'GET') {
     } else {
         $context = array('http' => array('method' => $type));
         if ('POST' === $type) {
-            $headers['Content-Type'] = 'Content-Type: application/x-www-form-urlencoded';
+            $headers['content-type'] = 'content-type: application/x-www-form-urlencoded';
             $context['http']['content'] = isset($chops[1]) ? $chops[1] : "";
         }
         $context['http']['header'] = implode("\r\n", array_values($headers));
