@@ -21,7 +21,7 @@ define('GITHUB_API_KEY', is_file($f = $dir . DS . 'key') ? file_get_contents($f)
 define('MIN_APACHE_VERSION', '2.4.0');
 define('MIN_PHP_VERSION', '7.1.0');
 
-define('THE_MECHA_VERSION', '2.3.2');
+define('THE_MECHA_VERSION', '2.4.0');
 define('THE_PANEL_VERSION', '2.4.0');
 define('THE_USER_VERSION', '1.11.4');
 
