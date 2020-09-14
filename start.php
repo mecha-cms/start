@@ -22,7 +22,7 @@ define('MIN_APACHE_VERSION', '2.4.0');
 define('MIN_PHP_VERSION', '7.1.0');
 
 define('THE_MECHA_VERSION', '2.5.0');
-define('THE_PANEL_VERSION', '2.4.1');
+define('THE_PANEL_VERSION', '2.4.2');
 define('THE_USER_VERSION', '1.12.0');
 
 function fetch($url, $lot = null, $type = 'GET') {
