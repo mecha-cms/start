@@ -23,7 +23,7 @@ define('MIN_PHP_VERSION', '7.1.0');
 
 define('THE_MECHA_VERSION', '2.5.0');
 define('THE_PANEL_VERSION', '2.4.2');
-define('THE_USER_VERSION', '1.12.0');
+define('THE_USER_VERSION', '1.12.1');
 
 function fetch($url, $lot = null, $type = 'GET') {
     $headers = array('x-requested-with' => 'x-requested-with: CURL');
