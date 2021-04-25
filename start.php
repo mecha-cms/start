@@ -108,7 +108,8 @@ if ('POST' === $_SERVER['REQUEST_METHOD']) {
     $repo = $d[0];
     $store = __DIR__ . (isset($d[1]) ? DS . $d[1] : "");
     $remove = array(
-        'composer.json',
+        '.github' => 1,
+        'composer.json' => 1,
         'README.md' => 1
     );
     $headers = array('User-Agent' => 'Mecha/' . THE_MECHA_VERSION . ' (+https://mecha-cms.com)');
@@ -118,7 +119,7 @@ if ('POST' === $_SERVER['REQUEST_METHOD']) {
     foreach (explode(',', isset($_POST['l']) ? $_POST['l'] : "") as $v) {
         $remove[$v] = 1;
     }
-    $tag = basename(isset($_POST['tag']) ? $_POST['tag'] : 'master');
+    $tag = basename(isset($_POST['tag']) ? $_POST['tag'] : 'main');
     $tree = fetch('https://api.github.com/repos/' . $repo . '/git/trees/' . $tag . '?recursive=true', $headers);
     if ($tree && ($tree = json_decode($tree, true)) && !empty($tree['tree'])) {
         foreach ($tree['tree'] as $v) {
