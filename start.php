@@ -18,8 +18,8 @@ $content = '<p>No such step.</p>';
 // Scopes: repo(repo:status,public_repo),read:packages
 define('GITHUB_API_KEY', is_file($f = $dir . DS . 'key') ? file_get_contents($f) : null);
 
-define('MIN_APACHE_VERSION', '2.4.0');
-define('MIN_PHP_VERSION', '7.1.0');
+define('MIN_APACHE_VERSION', 'v2.4.0');
+define('MIN_PHP_VERSION', 'v7.1.0');
 
 define('THE_MECHA_VERSION', 'main');
 define('THE_PANEL_VERSION', 'main');
@@ -154,8 +154,8 @@ if (0 === $step) {
     $title = 'Add Your GitHub Personal Access Token';
     $content = '<p>Make sure you have an internet connection. This token is needed to increase the rate limit of the GitHub API.</p><p>Go to <a href="https://github.com/settings/tokens" target="_blank">https://github.com/settings/tokens</a> to get your own personal access token. Make sure to check <strong>repo:status</strong>, <strong>public_repo</strong> and <strong>read:packages</strong> options only, just to be safe. Then generate the token.</p><p>Do not share your token with anyone!</p><p><input name="key" placeholder="' . md5($dir) . '" type="text" value="' . GITHUB_API_KEY . '"></p><p><button type="submit">Save</button> <button type="submit">I Don&rsquo;t Have a GitHub Account</button></p>';
     $v = PHP_MAJOR_VERSION . '.' . PHP_MINOR_VERSION . '.' . PHP_RELEASE_VERSION;
-    if (version_compare($v, MIN_PHP_VERSION, '<')) {
-        $alert .= '<p class="error">Mecha requires at least PHP version ' . MIN_PHP_VERSION . '. Your current PHP version is ' . $v . '.</p>';
+    if (version_compare($v, $version = preg_replace('/^v/', "", MIN_PHP_VERSION), '<')) {
+        $alert .= '<p class="error">Mecha requires at least PHP version ' . $version . '. Your current PHP version is ' . $v . '.</p>';
     } else {
         $alert .= '<p class="success">Your current PHP version is ' . $v . '.</p>';
     }
@@ -163,8 +163,8 @@ if (0 === $step) {
         $alert .= '<p class="error">Your PHP application doesn&rsquo;t seem to be running on Apache web server.</p>';
     } else {
         if (preg_match('/\d+(\.\d+)*/', apache_get_version(), $m)) {
-            if (version_compare($v = $m[0], MIN_APACHE_VERSION, '<')) {
-                $alert .= '<p class="error">Mecha requires at least Apache version ' . MIN_APACHE_VERSION . '. Your current Apache version is ' . $v . '.</p>';
+            if (version_compare($v = $m[0], $version = preg_replace('/^v/', "", MIN_APACHE_VERSION), '<')) {
+                $alert .= '<p class="error">Mecha requires at least Apache version ' . $version . '. Your current Apache version is ' . $v . '.</p>';
             } else {
                 $alert .= '<p class="success">Your current Apache version is ' . $v . '.</p>';
                 if (!in_array('mod_rewrite', apache_get_modules())) {
@@ -184,13 +184,13 @@ if (0 === $step) {
         $alert .= '<p class="info">Personal access token not specified. Your installation process may stop midway if you have reached the maximum access limit of the GitHub API.</p>';
     }
     $title = 'Let&rsquo;s Start the Installation Process!';
-    $content = '<p>Everything looks good. You are currently in the <code>' . $root . '</code> folder. Please note that your application will be installed in the <code>' . $root . '</code> folder. Make sure that there are no files in it to ensure that no files will be replaced by the files from this application when they have the same name or directory structure as this application.</p><p>To begin the installation, please click the button below!</p><p><button type="submit">Install</button><input name="d" type="hidden" value="mecha-cms/mecha"><input name="tag" type="hidden" value="v' . THE_MECHA_VERSION . '"></p>';
+    $content = '<p>Everything looks good. You are currently in the <code>' . $root . '</code> folder. Please note that your application will be installed in the <code>' . $root . '</code> folder. Make sure that there are no files in it to ensure that no files will be replaced by the files from this application when they have the same name or directory structure as this application.</p><p>To begin the installation, please click the button below!</p><p><button type="submit">Install</button><input name="d" type="hidden" value="mecha-cms/mecha"><input name="tag" type="hidden" value="' . THE_MECHA_VERSION . '"></p>';
 } else if (2 === $step) {
     $title = 'Adding the Control Panel Feature';
-    $content = '<p>I consider users who decide to use this tool as users who are unable to install the external parts of Mecha manually. This inability is a sign that you will most likely need a control panel feature, even though this feature is actually optional which you can remove at any time.</p><p>Please follow these steps to install the feature!</p><h2>Step 1: Install the User Extension</h2><p>This extension is needed to activate the generic user&rsquo;s log-in and log-out feature.</p><p><button type="submit">Install</button><input name="d" type="hidden" value="mecha-cms/x.user|lot/x"><input name="tag" type="hidden" value="v' . THE_USER_VERSION . '"></p>';
+    $content = '<p>I consider users who decide to use this tool as users who are unable to install the external parts of Mecha manually. This inability is a sign that you will most likely need a control panel feature, even though this feature is actually optional which you can remove at any time.</p><p>Please follow these steps to install the feature!</p><h2>Step 1: Install the User Extension</h2><p>This extension is needed to activate the generic user&rsquo;s log-in and log-out feature.</p><p><button type="submit">Install</button><input name="d" type="hidden" value="mecha-cms/x.user|lot/x"><input name="tag" type="hidden" value="' . THE_USER_VERSION . '"></p>';
 } else if (3 === $step) {
     $title = 'Adding the Control Panel Feature';
-    $content = '<p>I consider users who decide to use this tool as users who are unable to install the external parts of Mecha manually. This inability is a sign that you will most likely need a control panel feature, even though this feature is actually optional which you can remove at any time.</p><p>Please follow these steps to install the feature!</p><h2>Step 2: Install the Panel Extension</h2><p>After the user extension has been successfully installed, you can now install the control panel extension.</p><p><button type="submit">Install</button><input name="d" type="hidden" value="mecha-cms/x.panel|lot/x"><input name="tag" type="hidden" value="v' . THE_PANEL_VERSION . '"></p>';
+    $content = '<p>I consider users who decide to use this tool as users who are unable to install the external parts of Mecha manually. This inability is a sign that you will most likely need a control panel feature, even though this feature is actually optional which you can remove at any time.</p><p>Please follow these steps to install the feature!</p><h2>Step 2: Install the Panel Extension</h2><p>After the user extension has been successfully installed, you can now install the control panel extension.</p><p><button type="submit">Install</button><input name="d" type="hidden" value="mecha-cms/x.panel|lot/x"><input name="tag" type="hidden" value="' . THE_PANEL_VERSION . '"></p>';
 } else if (4 === $step) {
     $title = 'The Last Step&hellip;';
     $content = '<p><strong>Congratulations!</strong></p><p>Your site has been successfully installed and published to the world-wide-web. After clicking the button below, you will be directed to the first time user registration page. Clicking the button below will also delete the installer file, so your site will be safe.</p><p><button type="submit">Finish</button></p><p>After your user account is created, you can see the front page of your site through <a href="//' . rtrim($_SERVER['HTTP_HOST'] . strtr($root, array("\\" => '/', '.' => "")), '/') . '" target="_blank">this link</a>.</p>';
