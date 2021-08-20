@@ -95,8 +95,8 @@ if ('POST' === $_SERVER['REQUEST_METHOD']) {
         if (!is_dir($d = __DIR__ . DS . 'lot' . DS . 'user')) {
             mkdir($d, 0775, true);
         }
-        unlink(__FILE__);
         unlink($dir . DS . 'key');
+        unlink(__FILE__);
         header('Location: user');
         exit;
     }
@@ -108,8 +108,6 @@ if ('POST' === $_SERVER['REQUEST_METHOD']) {
     $repo = $d[0];
     $store = __DIR__ . (isset($d[1]) ? DS . $d[1] : "");
     $remove = array(
-        '.github' => 1,
-        'composer.json' => 1,
         'README.md' => 1
     );
     $headers = array('User-Agent' => 'Mecha/' . THE_MECHA_VERSION . ' (+https://mecha-cms.com)');
