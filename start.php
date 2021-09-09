@@ -84,7 +84,7 @@ if ('POST' === $_SERVER['REQUEST_METHOD']) {
         if (!is_dir($d = __DIR__ . DS . 'lot' . DS . 'user')) {
             mkdir($d, 0775, true);
         }
-        /* unlink(__FILE__); */
+        unlink(__FILE__);
         header('location: user');
         exit;
     }
