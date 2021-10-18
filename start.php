@@ -74,7 +74,8 @@ function fetch($url, $lot = null, $type = 'GET') {
 
 $alert = isset($_SESSION['flash']) ? $_SESSION['flash'] : "";
 
-$root = strtr(__DIR__, array($_SERVER['DOCUMENT_ROOT'] => '.'));
+$root = strtr(__DIR__, "\\", '/');
+$root = strtr($root, array(strtr($_SERVER['DOCUMENT_ROOT'], "\\", '/') => '.'));
 
 $step = (int) (isset($_GET['step']) ? $_GET['step'] : 0);
 $step = $step < 0 ? 0 : $step;
@@ -85,7 +86,7 @@ if ('POST' === $_SERVER['REQUEST_METHOD']) {
             mkdir($d, 0775, true);
         }
         unlink(__FILE__);
-        header('location: user');
+        header('Location: user');
         exit;
     }
     $step = (int) (isset($_POST['step']) ? $_POST['step'] : 0);
@@ -116,30 +117,53 @@ if ('POST' === $_SERVER['REQUEST_METHOD']) {
     if (false !== strpos($_SESSION['flash'], ' class="error"')) {
         --$step; // Back!
     }
-    header('location: start.php?step=' . ($step + 1));
+    header('Location: start.php?step=' . ($step + 1));
     exit;
 }
 
 if (0 === $step) {
-    $v = PHP_MAJOR_VERSION . '.' . PHP_MINOR_VERSION . '.' . PHP_RELEASE_VERSION;
-    if (version_compare($v, $version = preg_replace('/^v/', "", MIN_PHP_VERSION), '<')) {
-        $alert .= '<p class="error">Mecha requires at least PHP version ' . $version . '. Your current PHP version is ' . $v . '.</p>';
-    } else {
-        $alert .= '<p class="success">Your current PHP version is ' . $v . '.</p>';
+    ob_start();
+    phpinfo();
+    $info = ob_get_clean();
+    if (false !== stripos($info, '</body>') && preg_match('/<body>([\s\S]*?)<\/body>/i', $info, $m)) {
+        $info = $m[1];
     }
-    if (!function_exists('apache_get_version')) {
+    $info = strip_tags($info);
+    $apache_version = $litespeed_version = $php_version = null;
+    $has_mod_rewrite = false;
+    if (false !== stripos($info, 'apache version ') && preg_match('/apache version \s*(?:apache\/)?(v?\S+)/i', $info, $m)) {
+        $apache_version = $m[1];
+    }
+    if (false !== stripos($info, 'litespeed')) {
+        $litespeed_version = true;
+    }
+    if (false !== stripos($info, 'php version ') && preg_match('/php version \s*(?:php\/)?(v?\S+)/i', $info, $m)) {
+        $php_version = $m[1];
+    }
+    $loaded_modules = stripos($info, 'loaded modules ');
+    if (false !== $loaded_modules) {
+        if (false !== stripos(explode("\n", substr($info, $loaded_modules))[0], 'mod_rewrite')) {
+            $has_mod_rewrite = true;
+        }
+    }
+    if (version_compare($php_version, $version = preg_replace('/^v/', "", MIN_PHP_VERSION), '<')) {
+        $alert .= '<p class="error">Mecha requires at least PHP version ' . $version . '. Your current PHP version is ' . $php_version . '.</p>';
+    } else {
+        $alert .= '<p class="success">Your current PHP version is ' . $php_version . '.</p>';
+    }
+    if (!$apache_version && $litespeed_version) {
+        $alert .= '<p class="info">It looks like you are using a LiteSpeed web server. This web server is usually compatible with Apache web server configuration.</p>';
+    } else if (!$apache_version) {
         $alert .= '<p class="error">Your PHP application doesn&rsquo;t seem to be running on Apache web server.</p>';
     } else {
-        if (preg_match('/\d+(\.\d+)*/', apache_get_version(), $m)) {
-            if (version_compare($v = $m[0], $version = preg_replace('/^v/', "", MIN_APACHE_VERSION), '<')) {
-                $alert .= '<p class="error">Mecha requires at least Apache version ' . $version . '. Your current Apache version is ' . $v . '.</p>';
+        if (version_compare($apache_version, $version = preg_replace('/^v/', "", MIN_APACHE_VERSION), '<')) {
+            $alert .= '<p class="error">Mecha requires at least Apache version ' . $version . '. Your current Apache version is ' . $apache_version . '.</p>';
+        } else {
+            $alert .= '<p class="success">Your current Apache version is ' . $apache_version . '.</p>';
+            if (!$has_mod_rewrite) {
+                $alert .= '<p class="error">Apache module <code>mod_rewrite</code> is disabled or is not yet available.</p>';
             } else {
-                $alert .= '<p class="success">Your current Apache version is ' . $v . '.</p>';
-                if (!in_array('mod_rewrite', apache_get_modules())) {
-                    $alert .= '<p class="error">Apache module <code>mod_rewrite</code> is disabled or is not yet available.</p>';
-                } else {
-                    $alert .= '<p class="success">Apache module <code>mod_rewrite</code> is enabled.</p>';
-                }
+                $alert .= '<p class="success">Apache module <code>mod_rewrite</code> is enabled.</p>';
             }
         }
     }
@@ -148,20 +172,20 @@ if (0 === $step) {
     }
     if (false === strpos($alert, ' class="error"')) {
         $title = 'Let&rsquo;s Start the Installation Process!';
-        $content = '<p>Everything looks good. You are currently in the <code>' . $root . '</code> folder. Please note that your application will be installed in the <code>' . $root . '</code> folder. Make sure that there are no files in that folder to ensure that no files will be replaced by the files from this application when they have the same name or directory structure as this application.</p><p>To begin the installation, please click the button below!</p><p><button type="submit">Install</button><input name="d" type="hidden" value="mecha-cms/mecha"><input name="tag" type="hidden" value="' . THE_MECHA_VERSION . '"></p>';
+        $content = '<p>Everything looks good. You are currently in the <code>' . $root . '</code> folder. Please note that your application will be installed in the <code>' . $root . '</code> folder. Make sure that there are no files in that folder to ensure that no files will be replaced by the files from this application when they have the same name or directory structure as this application.</p><p>To begin the installation, please click the button below!</p><p><button class="button" type="submit">Install</button><input name="d" type="hidden" value="mecha-cms/mecha"><input name="tag" type="hidden" value="' . THE_MECHA_VERSION . '"></p>';
     } else {
         $title = 'Please Check the Requirements!';
         $content = '<p>You can install this application after fixing all the errors.</p>';
     }
 } else if (1 === $step) {
     $title = 'Adding the Control Panel Feature';
-    $content = '<p>I consider users who decide to use this tool as users who are unable to install the external parts of Mecha manually. This inability is a sign that you will most likely need a control panel feature, even though this feature is actually optional which you can remove at any time.</p><p>Please follow these steps to install the feature!</p><h2>Step 1: Install the User Extension</h2><p>This extension is needed to activate the generic user&rsquo;s log-in and log-out feature.</p><p><button type="submit">Install</button><input name="d" type="hidden" value="mecha-cms/x.user|lot/x"><input name="tag" type="hidden" value="' . THE_USER_VERSION . '"></p>';
+    $content = '<p>I consider users who decide to use this tool as users who are unable to install the external parts of Mecha manually. This inability is a sign that you will most likely need a control panel feature, even though this feature is actually optional which you can remove at any time.</p><p>Please follow these steps to install the feature!</p><h2>Step 1: Install the User Extension</h2><p>This extension is needed to activate the generic user&rsquo;s log-in and log-out feature.</p><p><button class="button" type="submit">Install</button><input name="d" type="hidden" value="mecha-cms/x.user|lot/x"><input name="tag" type="hidden" value="' . THE_USER_VERSION . '"></p>';
 } else if (2 === $step) {
     $title = 'Adding the Control Panel Feature';
-    $content = '<p>I consider users who decide to use this tool as users who are unable to install the external parts of Mecha manually. This inability is a sign that you will most likely need a control panel feature, even though this feature is actually optional which you can remove at any time.</p><p>Please follow these steps to install the feature!</p><h2>Step 2: Install the Panel Extension</h2><p>After the user extension has been successfully installed, you can now install the control panel extension.</p><p><button type="submit">Install</button><input name="d" type="hidden" value="mecha-cms/x.panel|lot/x"><input name="tag" type="hidden" value="' . THE_PANEL_VERSION . '"></p>';
+    $content = '<p>I consider users who decide to use this tool as users who are unable to install the external parts of Mecha manually. This inability is a sign that you will most likely need a control panel feature, even though this feature is actually optional which you can remove at any time.</p><p>Please follow these steps to install the feature!</p><h2>Step 2: Install the Panel Extension</h2><p>After the user extension has been successfully installed, you can now install the control panel extension.</p><p><button class="button" type="submit">Install</button><input name="d" type="hidden" value="mecha-cms/x.panel|lot/x"><input name="tag" type="hidden" value="' . THE_PANEL_VERSION . '"></p>';
 } else if (3 === $step) {
     $title = 'The Last Step&hellip;';
-    $content = '<p><strong>Congratulations!</strong></p><p>Your site has been successfully installed and published to the world-wide-web. After clicking the button below, you will be directed to the first time user registration page. Clicking the button below will also delete the installer file, so your site will be safe.</p><p><button type="submit">Finish</button></p><p>After your user account is created, you can see the front page of your site through <a href="//' . rtrim($_SERVER['HTTP_HOST'] . strtr($root, array("\\" => '/', '.' => "")), '/') . '" target="_blank">this link</a>.</p>';
+    $content = '<p><strong>Congratulations!</strong></p><p>Your site has been successfully installed and published to the world-wide-web. After clicking the button below, you will be directed to the first time user registration page. Clicking the button below will also delete the installer file, so your site will be safe.</p><p><button class="button" type="submit">Finish</button></p><p>After your user account is created, you can see the front page of your site through <a href="//' . rtrim($_SERVER['HTTP_HOST'] . strtr($root, array("\\" => '/', '.' => "")), '/') . '" target="_blank">this link</a>.</p>';
 }
 
 ?>
@@ -172,97 +196,21 @@ if (0 === $step) {
     <meta charset="utf-8">
     <link href="favicon.ico" rel="icon">
     <title>Start</title>
+    <link href="https://taufik-nurrohman.js.org/layout/index.min.css" rel="stylesheet">
     <style>
-      * {
-        box-sizing: border-box;
+      :root {
+        border-top: 5px solid;
       }
-      body, html {
-        margin: 0;
-        padding: 0;
-      }
-      html {
-        background: #fff;
-        font: normal normal 18px/1.4 sans-serif;
-        color: #000;
-        border-top: 4px solid;
-      }
-      a {
-        color: #00a;
-        text-decoration: none;
-      }
-      a:focus {
-        color: #a00;
-      }
-      h1, h2, h3, h4, h5, h6 {
-        font-weight: normal;
-      }
-      h1 {
-        margin-top: 0;
-      }
-      code {
-        font: inherit;
-        font-family: monospace;
-        font-size: 90%;
-      }
-      form {
+      main {
         max-width: 50rem;
-        margin: 0 auto;
-        padding: 5%;
-      }
-      button::-moz-focus-inner {
-        margin: 0;
-        padding: 0;
-        border: 0;
-        outline: 0;
-      }
-      button,
-      input,
-      select,
-      textarea {
-        background: #ffa;
-        font: inherit;
-        color: inherit;
-        border: 1px solid;
-        padding: .5em .75em;
-        width: 100%;
-        text-align: left;
-        box-shadow: inset 0 1px 1px rgba(0, 0, 0, .25);
-      }
-      button {
-        width: auto;
-        text-align: center;
-        background: #00a;
-        color: #fff;
-        padding-right: .85em;
-        padding-left: .85em;
-        border: 0;
-        box-shadow: 0 1px 1px rgba(0, 0, 0, .25);
-        cursor: pointer;
-      }
-      button:focus {
-        background: #a00;
-        color: #fff;
-      }
-      [disabled] {
-        opacity: .6 !important;
-        box-shadow: none !important;
-      }
-      label {
-        cursor: pointer;
-      }
-      .alert {
-        margin-bottom: 5%;
+        margin: 3rem auto;
       }
       .alert a {
         color: inherit;
         text-decoration: underline;
       }
       .alert p {
-        margin: 0;
-        padding: .5em 1em;
-      }
-      .alert p + p {
-        margin-top: .5em;
+        padding: .5rem 1rem;
       }
       .error {
         background: #f00;
@@ -279,24 +227,24 @@ if (0 === $step) {
     </style>
   </head>
   <body>
-    <form action="" method="post">
-      <?php echo $alert ? '<div class="alert">' . $alert . '</div>' : ""; ?>
-      <h1>
-        <?php echo $title; ?>
-      </h1>
-      <?php echo $content; ?>
-      <input name="step" type="hidden" value="<?php echo isset($_GET['step']) ? $_GET['step'] : ""; ?>">
-    </form>
+    <main>
+      <form action="" method="post">
+        <?php echo $alert ? '<div class="alert">' . $alert . '</div>' : ""; ?>
+        <h1><?php echo $title; ?></h1>
+        <?php echo $content; ?>
+        <input name="step" type="hidden" value="<?php echo isset($_GET['step']) ? $_GET['step'] : ""; ?>">
+      </form>
+    </main>
     <script>
-    document.querySelectorAll('[type=submit]').forEach(function(button) {
-        !button.disabled && button.addEventListener('click', function() {
-            if (button.disabled) {
-                return;
-            }
-            this.disabled = true;
-            this.style.cursor = 'wait';
-        });
-    });
+      document.querySelectorAll('[type=submit]').forEach(function(button) {
+          !button.disabled && button.addEventListener('click', function() {
+              if (button.disabled) {
+                  return;
+              }
+              this.disabled = true;
+              this.style.cursor = 'wait';
+          });
+      });
     </script>
   </body>
 </html>
