@@ -18,7 +18,7 @@ define('MIN_APACHE_VERSION', 'v2.4.0');
 define('MIN_PHP_VERSION', 'v7.1.0');
 
 define('THE_MECHA_VERSION', 'v2.6.4');
-define('THE_PANEL_VERSION', 'v2.8.0');
+define('THE_PANEL_VERSION', 'v2.8.1');
 define('THE_USER_VERSION', 'v1.13.0');
 
 function fetch($url, $lot = null, $type = 'GET') {
