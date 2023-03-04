@@ -106,7 +106,7 @@ echo '<meta charset="utf-8">';
 echo '<title>' . ($error > 0 ? 'Error (' . $error . ')' : 'Start') . '</title>';
 echo '<link href="data:image/x-icon;base64,AAABAAEAEBAAAAEAIABoBAAAFgAAACgAAAAQAAAAIAAAAAEAIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAzMzP/MzMz/zMzM/8zMzP/MzMz/////wAzMzP/MzMz/zMzM/8zMzP/////ADMzM/8zMzP/MzMz/zMzM/8zMzP/MzMz/zMzM/8zMzP/MzMz/zMzM/////8AMzMz/zMzM/8zMzP/MzMz/////wAzMzP/MzMz/zMzM/8zMzP/MzMz/zMzM/8zMzP/MzMz/zMzM/8zMzP/////ADMzM/8zMzP/MzMz/zMzM/////8AMzMz/zMzM/8zMzP/MzMz/zMzM/8zMzP/MzMz/zMzM/8zMzP/MzMz/////wAzMzP/MzMz/zMzM/8zMzP/////ADMzM/8zMzP/MzMz/zMzM/8zMzP/MzMz/zMzM/8zMzP/MzMz/zMzM/////8AMzMz/zMzM/8zMzP/MzMz/////wAzMzP/MzMz/zMzM/8zMzP/MzMz/zMzM/8zMzP/MzMz/zMzM/8zMzP/////ADMzM/8zMzP/MzMz/zMzM/////8AMzMz/zMzM/8zMzP/MzMz/zMzM/8zMzP/MzMz/zMzM/8zMzP/MzMz/////wAzMzP/MzMz/zMzM/8zMzP/////ADMzM/8zMzP/MzMz/zMzM/8zMzP/MzMz/zMzM/8zMzP/MzMz/zMzM/////8AMzMz/zMzM/8zMzP/MzMz/////wAzMzP/MzMz/zMzM/8zMzP/MzMz/zMzM/8zMzP/////AP///wD///8A////ADMzM/8zMzP/MzMz/zMzM/////8A////AP///wD///8AMzMz/zMzM/8zMzP/MzMz/zMzM/8zMzP/MzMz/zMzM/8zMzP/MzMz/zMzM/8zMzP/MzMz/zMzM/8zMzP/MzMz/zMzM/8zMzP/MzMz/zMzM/8zMzP/MzMz/zMzM/8zMzP/MzMz/zMzM/8zMzP/MzMz/zMzM/8zMzP/MzMz/zMzM/8zMzP/MzMz/zMzM/8zMzP/MzMz/zMzM/8zMzP/MzMz/zMzM/8zMzP/MzMz/zMzM/8zMzP/MzMz/zMzM/8zMzP/MzMz/zMzM/8zMzP/MzMz/zMzM/8zMzP/MzMz/zMzM/8zMzP/MzMz/zMzM/8zMzP/MzMz/zMzM/8zMzP/MzMz/zMzM/8zMzP/MzMz/zMzM/8zMzP/MzMz/zMzM/8zMzP/MzMz/zMzM/8zMzP/MzMz/zMzM/8zMzP/MzMz/zMzM/8zMzP/MzMz/zMzM/8zMzP/MzMz/zMzM/8zMzP/MzMz/zMzM/8zMzP/MzMz/zMzM/8zMzP/MzMz/zMzM/8zMzP/MzMz/zMzM/8zMzP/MzMz/zMzM/8zMzP/MzMz/zMzM/8zMzP/MzMz/zMzM/8zMzP/MzMz/zMzM/8zMzP/MzMz/zMzM/8zMzP/BCAAAAQgAAAEIAAABCAAAAQgAAAEIAAABCAAAAQgAAA8PAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==" rel="icon">';
 echo '<style>';
-echo 'a{color:#00f;text-decoration:none}button,label,select{cursor:pointer}hr{margin:1em 0}[role=alert]{color:#900;margin:0}[role=alert][aria-live=polite]{color:#060}';
+echo '*{box-sizing:border-box}a{color:#00f;text-decoration:none}button,label,select{cursor:pointer}hr{margin:1em 0}[role=alert]{color:#900;margin:0}[role=alert][aria-live=polite]{color:#060}';
 echo '</style>';
 echo '</head>';
 echo '<body style="max-width: 600px; margin-right: auto; margin-left: auto;">';
@@ -117,8 +117,9 @@ echo '<hr>';
 if ($error > 0) {
     echo '<p>Please fix the missing requirements to be able to start the installation process!</p>';
 } else {
-
     echo '<form method="post">';
+    echo '<p>Specify the installation folder (make sure this folder is empty):</p>';
+    echo '<p><input autofocus name="folder" placeholder="' . __DIR__ . '" style="display: block; width: 100%;" type="text" value="' . __DIR__ . '"></p>';
     echo '<p>What is your goal after the installation is complete?</p>';
     echo '<p>';
     echo '<label style="display: block;">';
