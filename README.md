@@ -1,4 +1,5 @@
-Mecha CMS Installer
-===================
+Installer for [Mecha](https://github.com/mecha-cms/mecha)
+=========================================================
 
-Download the installer file then put the `start.php` file at the root of your site’s public folder. Visit the installer page via `http://your-site-domain/start.php` link to start the installation.
+Download the installer file then put the `start.php` file at the root of your site’s public folder. Visit the installer
+page via `http://your-site-domain/start.php` link to start the installation.
