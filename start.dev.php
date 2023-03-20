@@ -176,7 +176,7 @@ if ('POST' === $_SERVER['REQUEST_METHOD']) {
             }
         }
     }
-    // unlink(__FILE__); // Done!
+    unlink(__FILE__); // Done!
     header('location: ' . dirname($_SERVER['PHP_SELF']));
     exit;
 }
@@ -197,8 +197,9 @@ echo '</style>';
 echo '</head>';
 echo '<body style="max-width: 600px; margin-right: auto; margin-left: auto;">';
 echo '<h1>Start</h1>';
-echo '<p>This simple interface will help you carry out the installation process based on your goals. Before starting the installation process, I need to make sure that all the requirements are available.</p>';
+echo '<p>This simple interface will help you carry out the installation process based on your goals. Before starting the installation process, I need to make sure that all requirements are met:</p>';
 echo $content;
+echo '<p>Your system is ready to perform the installation!</p>';
 echo '<hr>';
 if ($error > 0) {
     echo '<p>Please fix the missing requirements to be able to start the installation process!</p>';
