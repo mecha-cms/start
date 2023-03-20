@@ -5,16 +5,51 @@ ini_set('display_errors', true);
 ini_set('display_startup_errors', true);
 ini_set('html_errors', 1);
 
+define('D', DIRECTORY_SEPARATOR);
+
 define('MIN_VERSION_APACHE', 'v2.4.0');
 define('MIN_VERSION_PHP', 'v7.3.0');
 
-define('STABLE_VERSION', 'v2.6.4');
-define('STABLE_VERSION_PANEL', 'v2.8.1');
-define('STABLE_VERSION_USER', 'v1.13.0');
+define('STABLE_VERSION', 'v3.0.0');
+define('STABLE_VERSION_ALERT', 'v2.0.2');
+define('STABLE_VERSION_FORM', 'v2.0.0');
+define('STABLE_VERSION_PANEL', 'v3.0.0');
+define('STABLE_VERSION_USER', 'v2.0.0');
 
-define('D', DIRECTORY_SEPARATOR);
+function ping(string $link) {
+    try {
+        $h = get_headers($link);
+        if (!$h || !isset($h[0])) {
+            return false;
+        }
+        $status = (int) (explode(' ', $h[0])[1] ?? 404);
+        return $status >= 200 && $status < 300;
+    } catch (Throwable $e) {}
+    return false;
+}
 
-$content = "";
+function pull(string $from, string $to) {
+    if (is_file($to)) {
+        unlink($to);
+    }
+    $status = file_put_contents($to, fopen($from, 'r'));
+    if (is_int($status) && $status > 0) {
+        $zip = new ZipArchive;
+        if (true === $zip->open($to)) {
+            $zip->extractTo(dirname($to));
+            $zip->close();
+            unlink($to);
+            return true;
+        }
+        $zip->close();
+    }
+    return false;
+}
+
+$content = $_SESSION['prev'] ?? "";
+$error = 0;
+
+unset($_SESSION['prev']);
 
 if (!is_file(__DIR__ . D . 'index.php')) {
     $error = 0;
@@ -84,6 +119,10 @@ if (!is_file(__DIR__ . D . 'index.php')) {
         } else {
             $content .= '<p aria-live="polite" role="alert">&#x2714; PHP <a href="" target="_blank"><code>mbstring</code></a> extension is enabled.</p>';
         }
+        if ('GET' === $_SERVER['REQUEST_METHOD'] && !ping($link = 'https://mecha-cms.com')) {
+            $content .= '<p role="alert">&#x2718; Could not connect to <code>' . $link . '</code>. The site may be down right now or there may be some problem with your internet connection.</p>';
+            ++$error;
+        }
     }
 }
 
@@ -93,6 +132,53 @@ if (!extension_loaded('zip')) {
 }
 
 if ('POST' === $_SERVER['REQUEST_METHOD']) {
+    $folder = rtrim(strtr($_POST['folder'] ?? __DIR__, '/', D), D) ?: __DIR__;
+    // Check if folder does not exist
+    if (!is_dir($folder)) {
+        $_SESSION['prev'] = '<p role="alert">&#x2718; Folder <code>' . $folder . '</code> does not exist.</p>';
+        header('location: ' . $_SERVER['PHP_SELF']);
+        exit;
+    }
+    // Check if folder write-able
+    if (!is_writable($folder)) {
+        $_SESSION['prev'] = '<p role="alert">&#x2718; Folder <code>' . $folder . '</code> is not write-able.</p>';
+        header('location: ' . $_SERVER['PHP_SELF']);
+        exit;
+    }
+    // Check if folder is not empty
+    foreach (glob($folder . D . '*', GLOB_NOSORT) as $v) {
+        if (__FILE__ === $v) {
+            continue;
+        }
+        $_SESSION['prev'] = '<p role="alert">&#x2718; Folder <code>' . $folder . '</code> is not empty.</p>';
+        header('location: ' . $_SERVER['PHP_SELF']);
+        exit;
+    }
+    $minify = (int) ($_POST['minify'] ?? 1);
+    $panel = (int) ($_POST['panel'] ?? 1);
+    $status = (int) ($_POST['status'] ?? 1);
+    if (!pull('https://mecha-cms.com/git-dev/zip/mecha-cms/mecha' . ($minify ? '?minify=1' : "") . (0 !== $status ? '&version=' . STABLE_VERSION : ""), $folder . D . 'mecha.zip')) {
+        $_SESSION['prev'] = '<p role="alert">&#x2718; Could not pull <code>mecha-cms/mecha</code> due to network error.</p>';
+        header('location: ' . $_SERVER['PHP_SELF']);
+        exit;
+    }
+    if (0 !== $panel) {
+        foreach (['alert', 'form', 'user', 'panel'] as $v) {
+            if (!is_dir($d = $folder . D . 'lot' . D . 'x' . D . $v) && !mkdir($d, 0777, true)) {
+                $_SESSION['prev'] = '<p role="alert">&#x2718; Could not create folder <code>' . $d . '</code> due to file system error.</p>';
+                header('location: ' . $_SERVER['PHP_SELF']);
+                exit;
+            }
+            if (!pull('https://mecha-cms.com/git-dev/zip/mecha-cms/x.' . $v . ($minify ? '?minify=1' : "") . (0 !== $status ? '&version=' . constant('STABLE_VERSION_' . strtoupper($v)) : ""), $d . D . $v . '.zip')) {
+                $_SESSION['prev'] = '<p role="alert">&#x2718; Could not pull <code>mecha-cms/x.alert</code> due to network error.</p>';
+                header('location: ' . $_SERVER['PHP_SELF']);
+                exit;
+            }
+        }
+    }
+    // unlink(__FILE__); // Done!
+    header('location: ' . dirname($_SERVER['PHP_SELF']));
+    exit;
 }
 
 header('Content-Type: text/html');
@@ -153,7 +239,20 @@ if ($error > 0) {
     echo '<label style="display: block;">';
     echo '<input name="panel" type="radio" value="0">';
     echo ' ';
-    echo 'I am good with a code editor.';
+    echo 'I am good with a source code editor.';
+    echo '</label>';
+    echo '</p>';
+    echo '<p>Would you like to optimize the source code for production? This action will reduce the file size, but will make the source code unreadable.</p>';
+    echo '<p>';
+    echo '<label style="display: block;">';
+    echo '<input checked name="minify" type="radio" value="1">';
+    echo ' ';
+    echo 'Yes, optimize the source code.';
+    echo '</label>';
+    echo '<label style="display: block;">';
+    echo '<input name="minify" type="radio" value="2">';
+    echo ' ';
+    echo 'No, keep the source code as it is.';
     echo '</label>';
     echo '</p>';
     echo '<p>';
