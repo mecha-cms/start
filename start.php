@@ -49,7 +49,7 @@ function pull(string $from, string $to) {
 $content = $_SESSION['prev'] ?? "";
 $error = 0;
 
-unset($_SESSION['prev']);
+unset($_SESSION['prev']); // Clear the flash alert(s)
 
 if (!is_file(__DIR__ . D . 'index.php')) {
     $error = 0;
@@ -139,7 +139,7 @@ if ('POST' === $_SERVER['REQUEST_METHOD']) {
         header('location: ' . $_SERVER['PHP_SELF']);
         exit;
     }
-    // Check if folder write-able
+    // Check if folder not write-able
     if (!is_writable($folder)) {
         $_SESSION['prev'] = '<p role="alert">&#x2718; Folder <code>' . $folder . '</code> is not write-able.</p>';
         header('location: ' . $_SERVER['PHP_SELF']);
@@ -202,27 +202,24 @@ echo $content;
 echo '<p>Your system is ready to perform the installation!</p>';
 echo '<hr>';
 if ($error > 0) {
-    echo '<p>Please fix the missing requirements to be able to start the installation process!</p>';
+    echo '<p>Please fix the missing requirements to be able to perform the installation!</p>';
 } else {
     echo '<form method="post">';
-    echo '<p>Specify the installation folder (make sure this folder is empty):</p>';
-    echo '<p><input autofocus name="folder" placeholder="' . __DIR__ . '" style="display: block; width: 100%;" type="text" value="' . __DIR__ . '"></p>';
+    echo '<p>Specify the installation folder (make sure that this folder exists and is empty):</p>';
+    echo '<p>';
+    echo '<input autofocus name="folder" placeholder="' . __DIR__ . '" style="display: block; width: 100%;" type="text" value="' . __DIR__ . '">';
+    echo '</p>';
     echo '<p>What is your goal after the installation is complete?</p>';
     echo '<p>';
     echo '<label style="display: block;">';
     echo '<input checked name="status" type="radio" value="1">';
     echo ' ';
-    echo 'I want to use this application for my own site.';
-    echo '</label>';
-    echo '<label style="display: block;">';
-    echo '<input name="status" type="radio" value="2">';
-    echo ' ';
-    echo 'I want to use this application for my client site.';
+    echo 'I want to use this application to create a stable web site.';
     echo '</label>';
     echo '<label style="display: block;">';
     echo '<input name="status" type="radio" value="0">';
     echo ' ';
-    echo 'I want to try the latest features before the stable version is released.';
+    echo 'I want to try the latest features of this application before the stable version is released.';
     echo '</label>';
     echo '</p>';
     echo '<p>Would you like to install the control panel feature?</p>';
@@ -230,17 +227,12 @@ if ($error > 0) {
     echo '<label style="display: block;">';
     echo '<input checked name="panel" type="radio" value="1">';
     echo ' ';
-    echo 'Yes, I want to manage my content with a control panel.';
-    echo '</label>';
-    echo '<label style="display: block;">';
-    echo '<input name="panel" type="radio" value="2">';
-    echo ' ';
-    echo 'Yes, my client wants to manage his/her content with a control panel.';
+    echo 'Yes, I want to manage my web site content with a control panel.';
     echo '</label>';
     echo '<label style="display: block;">';
     echo '<input name="panel" type="radio" value="0">';
     echo ' ';
-    echo 'I am good with a source code editor.';
+    echo 'No, I am fine with a source code editor to manage my web site content.';
     echo '</label>';
     echo '</p>';
     echo '<p>Would you like to optimize the source code for production? This action will reduce the file size, but will make the source code unreadable.</p>';
@@ -248,7 +240,7 @@ if ($error > 0) {
     echo '<label style="display: block;">';
     echo '<input checked name="minify" type="radio" value="1">';
     echo ' ';
-    echo 'Yes, optimize the source code.';
+    echo 'Yes, optimize the source code. I don&rsquo;t care.';
     echo '</label>';
     echo '<label style="display: block;">';
     echo '<input name="minify" type="radio" value="2">';
