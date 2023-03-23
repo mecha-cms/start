@@ -46,13 +46,13 @@ function pull(string $from, string $to) {
     return false;
 }
 
-$content = $_SESSION['prev'] ?? "";
-$error = 0;
+$content = ($prev = $_SESSION['prev'] ?? "");
+$error = $prev && false !== strpos($prev, '&#x2718;') ? 1 : 0;
+$sub = "";
 
 unset($_SESSION['prev']); // Clear the flash alert(s)
 
 if (!is_file(__DIR__ . D . 'index.php')) {
-    $error = 0;
     ob_start();
     phpinfo();
     $info = ob_get_clean();
@@ -133,6 +133,19 @@ if (!extension_loaded('zip')) {
 
 if ('POST' === $_SERVER['REQUEST_METHOD']) {
     $folder = rtrim(strtr($_POST['folder'] ?? __DIR__, '/', D), D) ?: __DIR__;
+    if (!empty($_POST['sub'])) {
+        $sub = strtr(substr($folder, strlen(__DIR__ . D)), D, '/');
+        if ("" === $sub || !preg_match('/^[a-z\d]+(-[a-z\d]+)*(\/[a-z\d]+(-[a-z\d]+)*)*$/', $sub)) {
+            $_SESSION['prev'] = '<p role="alert">&#x2718; Folder name <code>' . $sub . '</code> must follow the <code>^[a-z\d]+(-[a-z\d]+)*(/[a-z\d]+(-[a-z\d]+)*)*$</code> pattern.</p>';
+            header('location: ' . $_SERVER['PHP_SELF']);
+            exit;
+        }
+        if (!is_dir($folder) && !mkdir($folder, 0777, true)) {
+            $_SESSION['prev'] = '<p role="alert">&#x2718; Could not create folder <code>' . $folder . '</code> due to file system error.</p>';
+            header('location: ' . $_SERVER['PHP_SELF']);
+            exit;
+        }
+    }
     // Check if folder does not exist
     if (!is_dir($folder)) {
         $_SESSION['prev'] = '<p role="alert">&#x2718; Folder <code>' . $folder . '</code> does not exist.</p>';
@@ -177,7 +190,7 @@ if ('POST' === $_SERVER['REQUEST_METHOD']) {
         }
     }
     unlink(__FILE__); // Done!
-    header('location: ' . dirname($_SERVER['PHP_SELF']));
+    header('location: ' . dirname($_SERVER['PHP_SELF']) . ("" !== $sub ? '/' . $sub : ""));
     exit;
 }
 
@@ -197,17 +210,27 @@ echo '</style>';
 echo '</head>';
 echo '<body style="max-width: 600px; margin-right: auto; margin-left: auto;">';
 echo '<h1>Start</h1>';
-echo '<p>This simple interface will help you carry out the installation process based on your goals. Before starting the installation process, I need to make sure that all requirements are met:</p>';
+echo '<p>This simple interface will help you carry out the installation process based on your goals. Before starting the installation process, I need to make sure that all application requirements are met:</p>';
 echo $content;
-echo '<p>Your system is ready to perform the installation!</p>';
-echo '<hr>';
-if ($error > 0) {
-    echo '<p>Please fix the missing requirements to be able to perform the installation!</p>';
-} else {
+if (!$prev) {
+    echo '<p>Your system is ' . ($error > 0 ? 'not ready' : 'ready') . ' to perform the installation!</p>';
+}
+if (0 === $error) {
+    echo '<hr>';
     echo '<form method="post">';
-    echo '<p>Specify the installation folder (make sure that this folder exists and is empty):</p>';
+    echo '<p>Specify the installation directory (make sure that this folder exists and is empty):</p>';
     echo '<p>';
     echo '<input autofocus name="folder" placeholder="' . __DIR__ . '" style="display: block; width: 100%;" type="text" value="' . __DIR__ . '">';
+    echo '</p>';
+    echo '<p>';
+    echo '<label>';
+    echo '<input name="sub" type="checkbox" value="1">';
+    echo ' ';
+    echo 'Create the folder if it does not exist';
+    echo ' ';
+    echo '(current installation directory is <code>' . __DIR__ . '</code>. Adding a sub-folder path will instruct the installer to create that sub-folder and will install the application there).';
+    echo '</label>';
+    echo ' ';
     echo '</p>';
     echo '<p>What is your goal after the installation is complete?</p>';
     echo '<p>';
@@ -243,7 +266,7 @@ if ($error > 0) {
     echo 'Yes, optimize the source code. I don&rsquo;t care.';
     echo '</label>';
     echo '<label style="display: block;">';
-    echo '<input name="minify" type="radio" value="2">';
+    echo '<input name="minify" type="radio" value="0">';
     echo ' ';
     echo 'No, keep the source code as it is.';
     echo '</label>';
