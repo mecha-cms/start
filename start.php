@@ -220,7 +220,12 @@ if (0 === $error) {
     echo '<form method="post">';
     echo '<p>Specify the installation directory (make sure that this folder exists and is empty):</p>';
     echo '<p>';
-    echo '<input autofocus name="folder" placeholder="' . __DIR__ . '" style="display: block; width: 100%;" type="text" value="' . __DIR__ . '">';
+    echo '<input autofocus list="folders" name="folder" placeholder="' . __DIR__ . '" style="display: block; width: 100%;" type="text" value="' . __DIR__ . '">';
+    echo '<datalist id="folders">';
+    foreach (glob(__DIR__ . D . '*', GLOB_ONLYDIR) as $v) {
+        echo '<option>' . $v . '</option>';
+    }
+    echo '</datalist>';
     echo '</p>';
     echo '<p>';
     echo '<label>';
