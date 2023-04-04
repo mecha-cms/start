@@ -32,6 +32,10 @@ function pull(string $from, string $to) {
     if (is_file($to)) {
         unlink($to);
     }
+    if (extension_loaded('curl')) {
+        // TODO
+        // return true;
+    }
     $status = file_put_contents($to, fopen($from, 'r'));
     if (is_int($status) && $status > 0) {
         $zip = new ZipArchive;
@@ -56,8 +60,8 @@ if (!is_file(__DIR__ . D . 'index.php')) {
     ob_start();
     phpinfo();
     $info = ob_get_clean();
-    if (false !== stripos($info, '</body>') && preg_match('/<body>([\s\S]*?)<\/body>/i', $info, $m)) {
-        $info = $m[1];
+    if (false !== stripos($info, '</body>') && preg_match('/<body(\s[^>]*)?>([\s\S]*?)<\/body>/i', $info, $m)) {
+        $info = $m[2];
     }
     $info = strip_tags($info);
     $apache_can_rewrite = false;
@@ -89,10 +93,10 @@ if (!is_file(__DIR__ . D . 'index.php')) {
         } else {
             $content .= '<p aria-live="polite" role="alert">&#x2714; Minimum Apache version is ' . $version . '. Your current Apache version is ' . $version_apache . '.</p>';
             if (!$apache_can_rewrite) {
-                $content .= '<p role="alert">&#x2718; Apache <a href="" target="_blank"><code>mod_rewrite</code></a> extension is disabled or is not available.</p>';
+                $content .= '<p role="alert">&#x2718; Apache <a href="https://httpd.apache.org/docs/2.4/mod/mod_rewrite.html" target="_blank"><code>mod_rewrite</code></a> extension is disabled or is not available.</p>';
                 ++$error;
             } else {
-                $content .= '<p aria-live="polite" role="alert">&#x2714; Apache <a href="" target="_blank"><code>mod_rewrite</code></a> extension is enabled.</p>';
+                $content .= '<p aria-live="polite" role="alert">&#x2714; Apache <a href="https://httpd.apache.org/docs/2.4/mod/mod_rewrite.html" target="_blank"><code>mod_rewrite</code></a> extension is enabled.</p>';
             }
         }
     }
@@ -102,22 +106,26 @@ if (!is_file(__DIR__ . D . 'index.php')) {
     } else {
         $content .= '<p aria-live="polite" role="alert">&#x2714; Minimum PHP version required is ' . $version . '. Your current PHP version is ' . $version_php . '.</p>';
         if (!extension_loaded('dom')) {
-            $content .= '<p role="alert">&#x2718; PHP <a href="" target="_blank"><code>dom</code></a> extension is disabled or is not available.</p>';
+            $content .= '<p role="alert">&#x2718; PHP <a href="https://www.php.net/book.dom" target="_blank"><code>dom</code></a> extension is disabled or is not available.</p>';
             ++$error;
         } else {
-            $content .= '<p aria-live="polite" role="alert">&#x2714; PHP <a href="" target="_blank"><code>dom</code></a> extension is enabled.</p>';
+            $content .= '<p aria-live="polite" role="alert">&#x2714; PHP <a href="https://www.php.net/book.dom" target="_blank"><code>dom</code></a> extension is enabled.</p>';
         }
         if (!extension_loaded('json')) {
-            $content .= '<p role="alert">&#x2718; PHP <a href="" target="_blank"><code>json</code></a> extension is disabled or is not available.</p>';
+            $content .= '<p role="alert">&#x2718; PHP <a href="https://www.php.net/book.json" target="_blank"><code>json</code></a> extension is disabled or is not available.</p>';
             ++$error;
         } else {
-            $content .= '<p aria-live="polite" role="alert">&#x2714; PHP <a href="" target="_blank"><code>json</code></a> extension is enabled.</p>';
+            $content .= '<p aria-live="polite" role="alert">&#x2714; PHP <a href="https://www.php.net/book.json" target="_blank"><code>json</code></a> extension is enabled.</p>';
         }
         if (!extension_loaded('mbstring')) {
-            $content .= '<p role="alert">&#x2718; PHP <a href="" target="_blank"><code>mbstring</code></a> extension is disabled or is not available.</p>';
+            $content .= '<p role="alert">&#x2718; PHP <a href="https://www.php.net/book.mbstring" target="_blank"><code>mbstring</code></a> extension is disabled or is not available.</p>';
             ++$error;
         } else {
-            $content .= '<p aria-live="polite" role="alert">&#x2714; PHP <a href="" target="_blank"><code>mbstring</code></a> extension is enabled.</p>';
+            $content .= '<p aria-live="polite" role="alert">&#x2714; PHP <a href="https://www.php.net/book.mbstring" target="_blank"><code>mbstring</code></a> extension is enabled.</p>';
+        }
+        if (!extension_loaded('curl') && !filter_var(ini_get('allow_url_fopen'), FILTER_VALIDATE_BOOLEAN)) {
+            $content .= '<p role="alert">&#x2718; The <code>allow_url_fopen</code> configuration must be enabled to allow PHP functions to retrieve data from remote locations over <abbr title="File Transfer Protocol">FTP</abbr> or <abbr title="Hyper Text Transfer Protocol">HTTP</abbr> (unless PHP <a href="https://www.php.net/book.curl" target="_blank"><code>curl</code></a> extension is enabled).</p>';
+            ++$error;
         }
         if ('GET' === $_SERVER['REQUEST_METHOD'] && !ping($link = 'https://mecha-cms.com')) {
             $content .= '<p role="alert">&#x2718; Could not connect to <code>' . $link . '</code>. The site may be down right now or there may be some problem with your internet connection.</p>';
@@ -127,7 +135,7 @@ if (!is_file(__DIR__ . D . 'index.php')) {
 }
 
 if (!extension_loaded('zip')) {
-    $content .= '<p role="alert">&#x2718; PHP <a href="" target="_blank"><code>zip</code></a> extension is disabled or is not available. This extension is needed to perform package extraction during the installation process. The core application does not require this extension to be enabled.</p>';
+    $content .= '<p role="alert">&#x2718; PHP <a href="https://www.php.net/book.zip" target="_blank"><code>zip</code></a> extension is disabled or is not available. This extension is needed to perform package extraction during the installation process. The core application does not require this extension to be enabled.</p>';
     ++$error;
 }
 
