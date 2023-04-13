@@ -32,11 +32,12 @@ function pull(string $from, string $to) {
     if (is_file($to)) {
         unlink($to);
     }
-    if (extension_loaded('curl')) {
-        // TODO
-        // return true;
-    }
-    $status = file_put_contents($to, fopen($from, 'r'));
+    $status = file_put_contents($to, fopen($from, 'r', false, stream_context_create([
+        'ssl' => [
+            'verify_peer' => false,
+            'verify_peer_name' => false
+        ]
+    ])));
     if (is_int($status) && $status > 0) {
         $zip = new ZipArchive;
         if (true === $zip->open($to)) {
@@ -124,7 +125,7 @@ if (!is_file(__DIR__ . D . 'index.php')) {
             $content .= '<p aria-live="polite" role="alert">&#x2714; PHP <a href="https://www.php.net/book.mbstring" target="_blank"><code>mbstring</code></a> extension is enabled.</p>';
         }
         if (!extension_loaded('curl') && !filter_var(ini_get('allow_url_fopen'), FILTER_VALIDATE_BOOLEAN)) {
-            $content .= '<p role="alert">&#x2718; The <code>allow_url_fopen</code> configuration must be enabled to allow PHP functions to retrieve data from remote locations over <abbr title="File Transfer Protocol">FTP</abbr> or <abbr title="Hyper Text Transfer Protocol">HTTP</abbr> (unless PHP <a href="https://www.php.net/book.curl" target="_blank"><code>curl</code></a> extension is enabled).</p>';
+            $content .= '<p role="alert">&#x2718; The <code>allow_url_fopen</code> configuration must be enabled to allow PHP functions to retrieve data from remote locations over <abbr title="File Transfer Protocol">FTP</abbr> or <abbr title="Hyper Text Transfer Protocol">HTTP</abbr>.</p>';
             ++$error;
         }
         if ('GET' === $_SERVER['REQUEST_METHOD'] && !ping($link = 'https://mecha-cms.com')) {
@@ -178,7 +179,7 @@ if ('POST' === $_SERVER['REQUEST_METHOD']) {
     $minify = (int) ($_POST['minify'] ?? 1);
     $panel = (int) ($_POST['panel'] ?? 1);
     $status = (int) ($_POST['status'] ?? 1);
-    if (!pull('https://mecha-cms.com/git-dev/zip/mecha-cms/mecha' . ($minify ? '?minify=1' : "") . (0 !== $status ? '&version=' . STABLE_VERSION : ""), $folder . D . 'mecha.zip')) {
+    if (!pull('https://dev.mecha-cms.com/git/zip/mecha-cms/mecha?minify=' . ($minify ? '1' : '0') . (0 !== $status ? '&version=' . STABLE_VERSION : ""), $folder . D . 'mecha.zip')) {
         $_SESSION['prev'] = '<p role="alert">&#x2718; Could not pull <code>mecha-cms/mecha</code> due to network error.</p>';
         header('location: ' . $_SERVER['PHP_SELF']);
         exit;
@@ -190,7 +191,7 @@ if ('POST' === $_SERVER['REQUEST_METHOD']) {
                 header('location: ' . $_SERVER['PHP_SELF']);
                 exit;
             }
-            if (!pull('https://mecha-cms.com/git-dev/zip/mecha-cms/x.' . $v . ($minify ? '?minify=1' : "") . (0 !== $status ? '&version=' . constant('STABLE_VERSION_' . strtoupper($v)) : ""), $d . D . $v . '.zip')) {
+            if (!pull('https://dev.mecha-cms.com/git/zip/mecha-cms/x.' . $v . '?minify=' . ($minify ? '1' : '0') . (0 !== $status ? '&version=' . constant('STABLE_VERSION_' . strtoupper($v)) : ""), $d . D . $v . '.zip')) {
                 $_SESSION['prev'] = '<p role="alert">&#x2718; Could not pull <code>mecha-cms/x.alert</code> due to network error.</p>';
                 header('location: ' . $_SERVER['PHP_SELF']);
                 exit;
