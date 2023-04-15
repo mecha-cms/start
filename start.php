@@ -179,7 +179,7 @@ if ('POST' === $_SERVER['REQUEST_METHOD']) {
     $minify = (int) ($_POST['minify'] ?? 1);
     $panel = (int) ($_POST['panel'] ?? 1);
     $status = (int) ($_POST['status'] ?? 1);
-    if (!pull('https://dev.mecha-cms.com/git/zip/mecha-cms/mecha?minify=' . ($minify ? '1' : '0') . (0 !== $status ? '&version=' . STABLE_VERSION : ""), $folder . D . 'mecha.zip')) {
+    if (!pull('https://dev.mecha-cms.com/git/zip/mecha-cms/mecha?minify=' . ($minify ? '1' : '0') . '&target=' . PHP_VERSION . (0 !== $status ? '&version=' . STABLE_VERSION : ""), $folder . D . 'mecha.zip')) {
         $_SESSION['prev'] = '<p role="alert">&#x2718; Could not pull <code>mecha-cms/mecha</code> due to network error.</p>';
         header('location: ' . $_SERVER['PHP_SELF']);
         exit;
@@ -191,7 +191,7 @@ if ('POST' === $_SERVER['REQUEST_METHOD']) {
                 header('location: ' . $_SERVER['PHP_SELF']);
                 exit;
             }
-            if (!pull('https://dev.mecha-cms.com/git/zip/mecha-cms/x.' . $v . '?minify=' . ($minify ? '1' : '0') . (0 !== $status ? '&version=' . constant('STABLE_VERSION_' . strtoupper($v)) : ""), $d . D . $v . '.zip')) {
+            if (!pull('https://dev.mecha-cms.com/git/zip/mecha-cms/x.' . $v . '?minify=' . ($minify ? '1' : '0') . '&target=' . PHP_VERSION . (0 !== $status ? '&version=' . constant('STABLE_VERSION_' . strtoupper($v)) : ""), $d . D . $v . '.zip')) {
                 $_SESSION['prev'] = '<p role="alert">&#x2718; Could not pull <code>mecha-cms/x.alert</code> due to network error.</p>';
                 header('location: ' . $_SERVER['PHP_SELF']);
                 exit;
