@@ -125,7 +125,7 @@ if (!is_file(__DIR__ . D . 'index.php')) {
 }
 
 if (!extension_loaded('zip')) {
-    $content .= '<p role="alert">&#x2718; PHP <a href="https://www.php.net/book.zip" target="_blank"><code>zip</code></a> extension is disabled or is not available. This extension is needed to perform package extraction during the installation process. The core application does not require this extension to be enabled.</p>';
+    $content .= '<p role="alert">&#x2718; PHP <a href="https://www.php.net/book.zip" target="_blank"><code>zip</code></a> extension is disabled or is not available. The core application does not require this extension to be enabled, but it is needed to extract the package during the installation process.</p>';
     ++$error;
 }
 
