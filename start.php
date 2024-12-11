@@ -11,7 +11,7 @@ define('DEV', false);
 define('MIN_VERSION_APACHE', 'v2.4.0');
 define('MIN_VERSION_PHP', 'v7.3.0');
 
-define('STABLE_VERSION', 'v3.1.0');
+define('STABLE_VERSION', 'v3.1.1');
 define('STABLE_VERSION_ALERT', 'v3.0.0');
 define('STABLE_VERSION_FORM', 'v2.0.0');
 define('STABLE_VERSION_PANEL', 'v3.0.1');
