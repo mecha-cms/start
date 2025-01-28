@@ -15,7 +15,7 @@ define('STABLE_VERSION', 'v3.2.0');
 define('STABLE_VERSION_ALERT', 'v3.0.0');
 define('STABLE_VERSION_FORM', 'v2.0.0');
 define('STABLE_VERSION_PANEL', 'v3.0.1');
-define('STABLE_VERSION_USER', 'v2.0.2');
+define('STABLE_VERSION_USER', 'v2.0.3');
 
 function ping(string $link) {
     try {
