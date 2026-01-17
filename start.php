@@ -261,19 +261,21 @@ if (0 === $error) {
     echo 'No, I am fine with a source code editor to manage my web site content.';
     echo '</label>';
     echo '</p>';
-    echo '<p>Would you like to optimize the source code for production? This action will reduce the file size, but will make the source code unreadable.</p>';
-    echo '<p>';
-    echo '<label style="display: block;">';
-    echo '<input checked name="minify" type="radio" value="1">';
-    echo ' ';
-    echo 'Yes, optimize the source code. I don&rsquo;t care.';
-    echo '</label>';
-    echo '<label style="display: block;">';
-    echo '<input name="minify" type="radio" value="0">';
-    echo ' ';
-    echo 'No, keep the source code as it is.';
-    echo '</label>';
-    echo '</p>';
+    if (version_compare($version_php, '8.0', '>=')) {
+        echo '<p>Would you like to optimize the source code for production? This action will reduce the file size, but will make the source code unreadable.</p>';
+        echo '<p>';
+        echo '<label style="display: block;">';
+        echo '<input checked name="minify" type="radio" value="1">';
+        echo ' ';
+        echo 'Yes, optimize the source code. I don&rsquo;t care.';
+        echo '</label>';
+        echo '<label style="display: block;">';
+        echo '<input name="minify" type="radio" value="0">';
+        echo ' ';
+        echo 'No, keep the source code as it is.';
+        echo '</label>';
+        echo '</p>';
+    }
     echo '<p>';
     echo '<button type="submit">Install</button>';
     echo '</p>';
